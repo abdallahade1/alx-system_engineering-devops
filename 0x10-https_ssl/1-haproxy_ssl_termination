@@ -7,7 +7,8 @@ global
         user haproxy
         group haproxy
         daemon
-        # ADDITIONS
+
+        # Added Default
         maxconn 2048
         tune.ssl.default-dh-param 2048
 
@@ -25,6 +26,8 @@ defaults
         mode    http
         option  httplog
         option  dontlognull
+        option forwardfor
+        option http-server-close
         timeout connect 5000
         timeout client  50000
         timeout server  50000
@@ -35,22 +38,21 @@ defaults
         errorfile 502 /etc/haproxy/errors/502.http
         errorfile 503 /etc/haproxy/errors/503.http
         errorfile 504 /etc/haproxy/errors/504.http
-        # ADDITIONS
-        option forwardfor
-        option http-server-close
-
-#--munyasi.tech-params-begin--
-frontend munyasi.tech-frontend
-        bind *:80
-        bind *:443 ssl crt /etc/haproxy/certs/munyasi.tech.pem
-        acl letsencrypt-acl path_beg /.well-known/acme-challenge/
-        http-request set-header X-Forwarded-Proto http
-        # ADDITIONS
-        use_backend letsencrypt-backend if letsencrypt-acl
-        default_backend munyasi.tech-backend
-
-backend munyasi.tech-backend
+listen mahi-uha
+        bind :80
+        mode http
         balance roundrobin
+        server 971-web-01 35.227.5.245:80 check
+        server 971-web-02 3.236.14.41:80 check
+frontend www-http
+        bind :80
+        reqadd X-Forwarded-Proto:\ http
+        default_backend web-backend
+frontend www-https
+        bind :443 ssl crt /etc/haproxy/certs/lb-01.mahi-uha.tech.pem
+        reqadd X-Forwarded-Proto:\ https
+        default_backend web-backend
+backend web-backend
         redirect scheme https if !{ ssl_fc }
-        server 20639-web-01 3.227.217.150:80 check
-        server 20639-web-02 3.95.27.202:80 check
+        server 971-web-01 35.227.5.245:80 check
+        server 971-web-02 3.236.14.41:80 check
