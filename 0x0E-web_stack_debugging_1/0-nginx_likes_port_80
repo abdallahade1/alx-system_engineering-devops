@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 # Trying to make Ngnix listen to port 80
-sed -i 's/8080/80/g' /etc/nginx/sites-enabled/default
+sudo sed -i 's/listen[ \t]*8080;/listen 80;/g' /etc/nginx/sites-available/default
 sudo service nginx restart
